@@ -1,4 +1,29 @@
 {
-	"artifacts" : "artf_seg.mat",
-	"ERP" 		: "erp_template.mat"
+	"PATH_TO_FIELDTRIP" 	: "D:/FieldTrip",
+	"type" 					: "ERP", 
+	"comment_type" 			: "ERP or OSCIL",
+	"n_dipoles" 			: 3,
+	"n_sessions"			: 10,
+	"n_trials" 				: 200,
+	"n_artifacts"			: 200,
+	"fsample"				: 2048,
+	"session_duration"		: 15,
+	"comment_session_dur"	: "in minutes",
+	"pseudo_length"			: 1,
+	"comment_pseudo_length" : "in seconds",
+	"ERP" 		 			: "erp_template.mat",
+	"freq"					: {
+							"f1": 10,
+							"f2": 20,
+							"f3": 10
+						  	},
+	"max_freq"				: 30,
+	"artifacts" 			: "artf_template.mat",
+	"elec"					: "elec.mat",
+	"channels"				: "[1:64]",
+	"headmodel"				: "vol.mat",
+	"atlas"					: "atlas.mat",
+	"snr_source"			: 20,
+	"snr_eeg"			 	: 20,
+	"comment_snr"			: "in dB"
 }
