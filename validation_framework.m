@@ -15,6 +15,7 @@ fclose(fid);
 config = jsondecode(str);
 
 addpath(config.PATH_TO_FIELDTRIP)
+addpath(genpath(config.PATH_TO_SEREEGA))
 ft_defaults
 cd(root)
 
@@ -25,6 +26,12 @@ n_sess = config.n_sessions;
 n_trial = config.n_trials;
 n_artf = config.n_artifacts;
 time = (0:config.pseudo_length*fs-1)/fs;
+
+% define epochs (required by SEREEGA)
+epochs        = struct();
+epochs.n      = n_trial; % the number of epochs to simulate
+epochs.srate  = fs; % their sampling rate in Hz
+epochs.length = config.pseudo_length * 1000; % their length in ms
 
 % load atlas and compute neighboring matrix
 atlas = load(config.atlas);
@@ -51,7 +58,6 @@ for i = 1:length(neighboring_matrix)
         end
     end
 end
-% figure;imagesc(neighboring_matrix);colormap(gray)
 
 % prepare dipole simulation config
 vol = load(config.headmodel);
@@ -61,12 +67,34 @@ elec = elec.(cell2mat(fieldnames(elec)));
 cfg      = [];
 cfg.headmodel = vol;
 cfg.elec = elec;
-labels = upper(elec.label(str2num(config.channels)));
-cfg.channel = labels;
+cfg.channel = elec.label(str2num(config.channels));
+
+labels = upper(cfg.channel);
 
 % create event array: samples at which the template starts
 duration = config.session_duration*60*fs;
-event = randi(duration-length(time),n_sess,n_trial);
+if isempty(config.event)
+    min_space = .25*fs; %events are spaced by 0.25s minimum 
+    count = 0;
+    event = -1;
+    while(any(event(:)<0)) %prevent negative samples
+        event = randi(duration-length(time),n_sess,n_trial);
+        event = sort(event,2); %sort the events by appearance time
+        event_space = diff(event,[],2);
+        while any(event_space(:) < (length(time)+min_space)) %ensure minimum space
+            event(event_space < (length(time)+min_space)) = ...
+                event(event_space < (length(time)+min_space)) - (length(time)+min_space);
+            event_space = diff(event,[],2);
+        end
+        count = count + 1;
+        if count > 1000
+            error('Too many trials! Tips: increase duration or decrease n_trials')
+        end
+    end
+    save('pseudo_data/event.mat','event')
+else
+    load(config.event)
+end
 
 % define the artifacts from the template
 artf = load(config.artifacts);
@@ -114,7 +142,7 @@ for i = 1:length(all_artf)
 end
 all_artf = [all_artf{:}];
 for i = 1:length(all_artf)
-    all_artf{i} = all_artf{i}./max(abs(all_artf{i}),[],2);
+    all_artf{i} = all_artf{i}./prctile(abs(all_artf{i}(:)),90);
     
     %interpolate missing channels
     missing_chan = ~ismember(lower(labels),lower(artf.label));
@@ -140,99 +168,6 @@ pseudo_source = cell(n_sess,1);
 pseudo_source(:) = {zeros(n_dip,duration)};
 pseudo_artf = cell(n_sess,1);
 for s = 1:n_sess
-    switch(config.type)
-        case {'erp', 'ERP'}
-            erp = load(config.ERP);
-            erp = erp.(cell2mat(fieldnames(erp)));
-            if ceil(erp.time(end)) ~= ceil(time(end))
-                error('config.pseudo_length is different than the template ERP duration')
-            end
-            if erp.fsample ~= fs
-                erp.erp = interp1(erp.time,erp.erp,time)';
-                erp.erp(isnan(erp.erp)) = 0;
-                erp.time = (0:fs-1)./fs;
-                erp.fsample = fs;
-            end
-            
-            signal = cell(n_trial,1);
-            for trial = 1:n_trial
-                erp_idx = randi(size(erp.erp,1),1,n_dip); %define each trial activity as one of the template ERPs
-                tmp = erp.erp(erp_idx,:);
-                % introduce causal interaction between the 2 first dipoles
-                shift = ceil(fs*0.05); %shift by 50ms (for further causality study)
-                tmp(1,end-shift+1:end) = 0;
-                tmp(1,:) = circshift(tmp(1,:),shift);
-                signal{trial} = tmp;
-
-                % introduce frequency and phase shift on non-interacting sources
-                if n_dip > 2
-                    for dip = 3:n_dip
-                        tmp = signal{trial}(dip,:);
-                        freq_shift = rand(1)+0.5; %0.5 to 1.5 Hz frequency shift
-                        ph_shift = rand(1)*2*pi;
-                        signal{trial}(dip,:)= tmp.*cos(2*pi*freq_shift*time+ph_shift); %frequency modulation
-                    end
-                end
-                tmp = awgn(signal{trial},config.snr_source,'measured'); %add white noise
-                signal{trial} = tmp./max(tmp,[],2)*5; %normalize (max ampli=5µV)
-                idx = event(s,trial):event(s,trial)+length(time)-1;
-                pseudo_source{s}(:,idx) = pseudo_source{s}(:,idx) + signal{trial};
-            end
-
-        case {'oscil', 'OSCIL'}
-            if isempty(config.freq)
-                freq = (1:n_dip).*config.max_freq/n_dip;
-                % impose 2 dipoles having the same frequency 
-                % (for connectivity analysis purpose)
-                rand_idx = randi(n_dip);
-                new_idx = rand_idx+1;
-                if new_idx > n_dip
-                    new_idx = 1;
-                end
-                freq(new_idx) = freq(rand_idx);
-            else
-                freq = [];
-                for f = fieldnames(config.freq)'
-                    freq = [freq, config.freq.(f{1})];
-                end
-            end
-
-            signal = cell(n_trial,1);
-            for trial = 1:n_trial
-                signal{trial} = zeros(n_dip,length(time));
-                for i = 1:n_dip
-                    if i > length(freq)
-                        f = freq(mod(i-1,length(freq))+1);
-                    else
-                        f = freq(i);
-                    end
-                    rand_step = zeros(1,length(time));
-                    step_idx = randi(length(time),1,floor(length(time)/10)); %a 10th of the samples will be frequency shifted
-                    rand_step(step_idx) = randn(1,length(step_idx))*0.05; %random frequency shift(mean=0,std=0.05)
-                    f_vec = filter(1,[1 -1], rand_step, f); %f(i) = f(i-1) + rand_step
-
-                    % add abrupt change in freq to introduce causality afterwards
-                    abrupt_times = [config.pseudo_length/3, 2*config.pseudo_length/3];
-                    f_vec(and(time>abrupt_times(1), time<abrupt_times(2))) = ...
-                        f_vec(and(time>abrupt_times(1), time<abrupt_times(2)))-(min(freq)/3);
-                    f_vec(time>abrupt_times(2)) = f_vec(time>abrupt_times(2))+(min(freq)/3);
-
-                    if i ~= new_idx
-                        tmp = 5*sin(f_vec.*time.*2*pi);
-                    else %interacting source
-                        tmp = 5*sin(f_vec.*time.*2*pi - pi/3); %change phase of interacting source to make the difference with volume conduction
-                        shift = ceil(fs*0.05); %shift by 50ms (for further causality study)
-                        tmp(end-shift+1:end) = 0;
-                        tmp = circshift(tmp,shift);
-                    end
-                    tmp = smooth(tmp,round(fs/50));
-                    signal{trial}(i,:) = tmp./max(tmp)*5; %normalize (max ampli=5µV)
-                end
-                idx = event(s,trial):event(s,trial)+length(time)-1;
-                pseudo_source{s}(:,idx) = pseudo_source{s}(:,idx) + signal{trial};
-            end
-    end
-    
     % random dipole position
     rng('shuffle');
     neighb_cond = 0;
@@ -248,7 +183,7 @@ for s = 1:n_sess
             if any(ismember(atlas.tissue(dipole_idx),neighbors))
                 neighb_cond = 0;
                 break
-            else
+            elseif config.avoid_2nd_neighb
                 for neighb = neighbors
                     [~,second_neighb] = find(neighboring_matrix(neighb,:));
                     if sum(ismember(atlas.tissue(dipole_idx),second_neighb))>1
@@ -273,6 +208,90 @@ for s = 1:n_sess
         r = r/norm(r);
         dipole_mom(3*(i-1)+1:3*i) = r';
     end
+    
+    switch(config.type)
+        case {'erp', 'ERP'}
+            peaks = split(config.ERP.peaks,',');
+            latency = regexp(peaks,'\d*','match');
+            latency = cellfun(@(x) str2double(x{1}),latency)';
+            amplitude = str2num(config.ERP.ampli) .* cell2mat(cellfun(@(x) ...
+                contains(x,'p','IgnoreCase',true)-contains(x,'n','IgnoreCase',true),...
+                peaks,'un',0))';
+            width = str2num(config.ERP.width);
+
+            erp = struct();
+            erp.peakLatency = latency;      % in ms, starting at the start of the epoch
+            erp.peakWidth = width;        % in ms
+            erp.peakAmplitude = amplitude;      % in microvolt
+            erp.peakLatencyDv = repmat(50,1,length(peaks));
+            erp.peakAmplitudeDv = .2*amplitude;
+            erp.peakWidthDv = .5*width;
+            erp.peakAmplitudeSlope = -.75*amplitude; %introduce stimuli habituation
+
+            erp = utl_check_class(erp, 'type', 'erp');
+
+            tmp = pseudo_source{s};
+            for trial = 1:n_trial
+                idx = event(s,trial):event(s,trial)+length(time)-1;
+                for dip = 1:n_dip
+                    signal = erp_generate_signal_fromclass(erp, epochs, 'epochNumber', trial);
+                    if atlas.pos(dipole_idx(dip), 1) > 0 %frontal region -> polarity inversion
+                        tmp(dip,idx) = tmp(dip,idx) - signal;
+                    else
+                        tmp(dip,idx) = tmp(dip,idx) + signal;
+                    end
+                end
+            end
+            tmp = awgn(tmp,config.snr_source,'measured'); %add white noise
+            pseudo_source{s} = tmp;
+
+        case {'oscil', 'OSCIL'}
+            tmp = pseudo_source{s};
+            if isempty(config.OSCIL.freq)
+                freq = (1:n_dip).*config.OSCIL.max_freq/n_dip;
+                % impose 2 dipoles having the same frequency 
+                % (for connectivity analysis purpose)
+                rand_idx = randi(n_dip);
+                new_idx = rand_idx+1;
+                if new_idx > n_dip
+                    new_idx = 1;
+                end
+                freq(new_idx) = freq(rand_idx);
+                freq = [freq'-2,freq'+2];
+            else
+                freq = [];
+                for f = fieldnames(config.OSCIL.freq)'
+                    freq = [freq; config.OSCIL.freq.(f{1})'];
+                end
+            end
+            amplitude = str2num(config.OSCIL.ampli);
+            
+            for dip = 1:n_dip
+                if dip > size(freq,1)
+                    f = freq(mod(dip-1,size(freq,1))+1,:);
+                else
+                    f = freq(dip,:);
+                end
+                
+                ersp = struct();
+                ersp.frequency = [f(1)-.2*diff(f), f, f(2)+.2*diff(f)]; % frequency band
+                ersp.amplitude = amplitude(dip); % in microvolt
+                ersp.modulation = config.OSCIL.modulation;
+                ersp.modFrequency = 3;
+                ersp.modPhase = .25;
+
+                ersp = utl_check_class(ersp, 'type', 'ersp');
+
+                for trial = 1:n_trial
+                    ersp.phase = rand(1)*2*pi;
+                    idx = event(s,trial):event(s,trial)+length(time)-1;
+                    signal = ersp_generate_signal_fromclass(ersp, epochs, 'epochNumber', trial);
+                    tmp(dip,idx) = tmp(dip,idx) + signal;
+                end
+            end
+            tmp = awgn(tmp,config.snr_source,'measured'); %add white noise
+            pseudo_source{s} = tmp;            
+    end
 
     cfg.dip.pos = dipole_pos;
     cfg.dip.mom = dipole_mom;
@@ -280,7 +299,8 @@ for s = 1:n_sess
     cfg.fsample = fs;
     pseudo_eeg{s} = ft_dipolesimulation(cfg);
     tmp = pseudo_eeg{s}.trial{1};
-    pseudo_eeg{s}.trial{1} = tmp/max(tmp(:)); %Normalization
+%     pseudo_eeg{s}.trial{1} = tmp/max(tmp(:)); %Normalization
+    pseudo_eeg{s}.trial{1} = tmp./max(abs(tmp(:))); %Normalization
     
     % add artifacts randomly selected from the templates
     pseudo_artf{s} = cell(n_artf,3);
@@ -310,15 +330,39 @@ for s = 1:n_sess
 %     save(['pseudo_eeg/session' num2str(s)],'pseudo_eeg')
 end
 % eegplot(pseudo_source{s}, 'srate', fs,'position',[0 30 1535 780])
-eegplot(pseudo_eeg{s}.trial{1}, 'srate', fs,'position',[0 30 1535 780])
-eegplot(tmp, 'srate', fs,'position',[0 30 1535 780])
-pseudo_eeg{s}.time{1}(pseudo_artf{s}.sample)
+% eegplot(pseudo_eeg{s}.trial{1}, 'srate', fs,'position',[0 30 1535 780])
+% eegplot(tmp, 'srate', fs,'position',[0 30 1535 780])
+% pseudo_eeg{s}.time{1}(pseudo_artf{s}.sample)
 %% save
-save('pseudo_data/event.mat','event')
 save('pseudo_data/dipole.mat','pseudo_dipole')
 save('pseudo_data/source.mat','pseudo_source')
 save('pseudo_data/artifact.mat','pseudo_artf')
 
+eegplot(pseudo_eeg{s}.trial{1}, 'srate', fs,'position',[0 30 1535 780])
+
+% eegplot(tmp, 'srate', fs,'position',[0 30 1535 780])
+figure('position',[0 30 1000 300]);plot(0:1/fs:5-1/fs, tmp(:,100*fs:(105-1/fs)*fs))
+xlabel('time (s)')
+ylabel('Amplitude (µV)')
+title(sprintf('Pseudo-source signals\nA'))
+legend(atlas.tissuelabel(atlas.tissue(dipole_idx)))
+ax = gca;
+ax.TitleFontSizeMultiplier = 1.5;
 
 
 
+
+% figure('position',[0 900 1100 1100]);imagesc(neighboring_matrix);colormap(gray)
+% truesize([800,800])
+% xticks(1:length(atlas.tissuelabel))
+% xticklabels(atlas.tissuelabel)
+% xtickangle(90)
+% yticks(1:length(atlas.tissuelabel))
+% yticklabels(atlas.tissuelabel)
+% title('source neighboring matrix')
+% ax = gca;
+% ax.TitleFontSizeMultiplier = 2;
+
+% fs = 2048
+% s = 5
+% eegplot(eeg.trial{1}, 'srate', fs,'position',[0 30 1535 780])
