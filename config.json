@@ -1,9 +1,8 @@
 {
 	"PATH_TO_FIELDTRIP" 	: "D:/FieldTrip",
-	"type" 					: "ERP", 
-	"comment_type" 			: "ERP or OSCIL",
-	"n_dipoles" 			: 3,
+	"PATH_TO_SEREEGA" 		: "D:/SEREEGA",	
 	"n_sessions"			: 10,
+	"n_dipoles" 			: 3,
 	"n_trials" 				: 200,
 	"n_artifacts"			: 200,
 	"fsample"				: 2048,
@@ -11,19 +10,33 @@
 	"comment_session_dur"	: "in minutes",
 	"pseudo_length"			: 1,
 	"comment_pseudo_length" : "in seconds",
-	"ERP" 		 			: "erp_template.mat",
-	"freq"					: {
-							"f1": 10,
-							"f2": 20,
-							"f3": 10
-						  	},
-	"max_freq"				: 30,
-	"artifacts" 			: "artf_template.mat",
-	"elec"					: "elec.mat",
+	"type" 					: "ERP", 
+	"comment_type" 			: "ERP or OSCIL",
+	"ERP" 		 			: {
+							"peaks": "P100, N200, P300, N400",
+							"ampli": " 0.2,  0.4,    1,  0.8",
+							"width": " 300,  300,  200,  200"
+							},
+	"OSCIL" 				: {
+							"freq": {
+								  "f1": [8,12],
+								  "f2": [16,24],
+								  "f3": [9,13]
+							  	  },
+							"comment_freq": "freq band",
+							"max_freq": 30,
+							"ampli": "1, 1, 1",
+							"modulation": "none",
+							"comment_mod": "none or ampmod"
+							},
+	"artifacts" 			: "template/artf_template.mat",
+	"event"					: "",
+	"elec"					: "template/elec.mat",
 	"channels"				: "[1:64]",
-	"headmodel"				: "vol.mat",
-	"atlas"					: "atlas.mat",
+	"headmodel"				: "template/vol.mat",
+	"atlas"					: "template/atlas.mat",
+	"avoid_2nd_neighb" 		: true,
 	"snr_source"			: 20,
-	"snr_eeg"			 	: 20,
+	"snr_eeg"			 	: 5,
 	"comment_snr"			: "in dB"
 }
