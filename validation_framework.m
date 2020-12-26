@@ -60,10 +60,8 @@ for i = 1:length(neighboring_matrix)
 end
 
 % prepare dipole simulation config
-vol = load(config.headmodel);
-vol = vol.(cell2mat(fieldnames(vol)));
-elec = load(config.elec);
-elec = elec.(cell2mat(fieldnames(elec)));
+vol = ft_read_headmodel(config.headmodel);
+elec = ft_read_sens(config.elec);
 cfg      = [];
 cfg.headmodel = vol;
 cfg.elec = elec;
@@ -142,7 +140,7 @@ for i = 1:length(all_artf)
 end
 all_artf = [all_artf{:}];
 for i = 1:length(all_artf)
-    all_artf{i} = all_artf{i}./prctile(abs(all_artf{i}(:)),90);
+    all_artf{i} = all_artf{i}./prctile(abs(all_artf{i}(:)),99);
     
     %interpolate missing channels
     missing_chan = ~ismember(lower(labels),lower(artf.label));
@@ -168,34 +166,40 @@ pseudo_source = cell(n_sess,1);
 pseudo_source(:) = {zeros(n_dip,duration)};
 pseudo_artf = cell(n_sess,1);
 for s = 1:n_sess
-    % random dipole position
-    rng('shuffle');
-    neighb_cond = 0;
-    non_zero_dip = find(atlas.tissue ~= 0);
-    count = 0;
-    clc;
-    while(~neighb_cond)
-        dipole_idx = non_zero_dip(randi(length(non_zero_dip),1,n_dip));
-        % avoid dipoles to be in neighbor regions (or neighbor of neighbor)
-        for dip = 1:n_dip
-            neighb_cond = 1;
-            [~,neighbors] = find(neighboring_matrix(atlas.tissue(dipole_idx(dip)),:));
-            if any(ismember(atlas.tissue(dipole_idx),neighbors))
-                neighb_cond = 0;
-                break
-            elseif config.avoid_2nd_neighb
-                for neighb = neighbors
-                    [~,second_neighb] = find(neighboring_matrix(neighb,:));
-                    if sum(ismember(atlas.tissue(dipole_idx),second_neighb))>1
-                        neighb_cond = 0;
-                        break
+    if isempty(config.dipoles_selection)
+        % random dipole position
+        rng('shuffle');
+        neighb_cond = 0;
+        non_zero_dip = find(atlas.tissue ~= 0);
+        count = 0;
+        clc;
+        while(~neighb_cond)
+            dipole_idx = non_zero_dip(randi(length(non_zero_dip),1,n_dip));
+            % avoid dipoles to be in neighbor regions (or neighbor of neighbor)
+            for dip = 1:n_dip
+                neighb_cond = 1;
+                [~,neighbors] = find(neighboring_matrix(atlas.tissue(dipole_idx(dip)),:));
+                if any(ismember(atlas.tissue(dipole_idx),neighbors))
+                    neighb_cond = 0;
+                    break
+                elseif config.avoid_2nd_neighb
+                    for neighb = neighbors
+                        [~,second_neighb] = find(neighboring_matrix(neighb,:));
+                        if sum(ismember(atlas.tissue(dipole_idx),second_neighb))>1
+                            neighb_cond = 0;
+                            break
+                        end
                     end
                 end
+                if ~neighb_cond
+                    break
+                end
             end
-            if ~neighb_cond
-                break
-            end
+            dipole_pos = atlas.pos(dipole_idx, :);
         end
+    else
+        dipole_idx = load(config.dipoles_selection);
+        dipole_idx = dipole_idx.(cell2mat(fieldnames(dipole_idx)));
         dipole_pos = atlas.pos(dipole_idx, :);
     end
     pseudo_dipole{s}.pos = dipole_pos;
@@ -242,7 +246,10 @@ for s = 1:n_sess
                     end
                 end
             end
-            tmp = awgn(tmp,config.snr_source,'measured'); %add white noise
+            % add pink noise
+            noise = pinknoise(size(tmp,1),size(tmp,2));
+            pRMS = rms(noise,2).^2;
+            tmp = tmp + noise./(pRMS.*config.snr_source);
             pseudo_source{s} = tmp;
 
         case {'oscil', 'OSCIL'}
@@ -289,7 +296,10 @@ for s = 1:n_sess
                     tmp(dip,idx) = tmp(dip,idx) + signal;
                 end
             end
-            tmp = awgn(tmp,config.snr_source,'measured'); %add white noise
+            % add pink noise
+            noise = pinknoise(size(tmp,1),size(tmp,2));
+            pRMS = rms(noise,2).^2;
+            tmp = tmp + noise./(pRMS.*config.snr_source);
             pseudo_source{s} = tmp;            
     end
 
@@ -297,9 +307,9 @@ for s = 1:n_sess
     cfg.dip.mom = dipole_mom;
     cfg.dip.signal = pseudo_source(s);
     cfg.fsample = fs;
+    cfg.relnoise = config.snr_eeg;
     pseudo_eeg{s} = ft_dipolesimulation(cfg);
     tmp = pseudo_eeg{s}.trial{1};
-%     pseudo_eeg{s}.trial{1} = tmp/max(tmp(:)); %Normalization
     pseudo_eeg{s}.trial{1} = tmp./max(abs(tmp(:))); %Normalization
     
     % add artifacts randomly selected from the templates
@@ -314,13 +324,8 @@ for s = 1:n_sess
     tmp = pseudo_eeg{s}.trial{1};
     for i = 1:n_artf
         tmp(:,rand_time(i):rand_time(i)+size(all_artf{rand_artf(i)},2)-1) = ...
-            tmp(:,rand_time(i):rand_time(i)+size(all_artf{rand_artf(i)},2)-1) + all_artf{rand_artf(i)};
+            tmp(:,rand_time(i):rand_time(i)+size(all_artf{rand_artf(i)},2)-1) + all_artf{rand_artf(i)}./4;
     end
-    
-    % add pink noise
-    noise = pinknoise(size(tmp,1),size(tmp,2));
-    pRMS = rms(noise,2).^2;
-    tmp = tmp + noise./(pRMS.*10^(config.snr_eeg/20));
 
     pseudo_eeg{s}.trial{1} = tmp;
     
@@ -338,31 +343,90 @@ save('pseudo_data/dipole.mat','pseudo_dipole')
 save('pseudo_data/source.mat','pseudo_source')
 save('pseudo_data/artifact.mat','pseudo_artf')
 
-eegplot(pseudo_eeg{s}.trial{1}, 'srate', fs,'position',[0 30 1535 780])
-
-% eegplot(tmp, 'srate', fs,'position',[0 30 1535 780])
-figure('position',[0 30 1000 300]);plot(0:1/fs:5-1/fs, tmp(:,100*fs:(105-1/fs)*fs))
-xlabel('time (s)')
-ylabel('Amplitude (µV)')
-title(sprintf('Pseudo-source signals\nA'))
-legend(atlas.tissuelabel(atlas.tissue(dipole_idx)))
-ax = gca;
-ax.TitleFontSizeMultiplier = 1.5;
-
-
-
-
-% figure('position',[0 900 1100 1100]);imagesc(neighboring_matrix);colormap(gray)
-% truesize([800,800])
-% xticks(1:length(atlas.tissuelabel))
-% xticklabels(atlas.tissuelabel)
-% xtickangle(90)
-% yticks(1:length(atlas.tissuelabel))
-% yticklabels(atlas.tissuelabel)
-% title('source neighboring matrix')
-% ax = gca;
-% ax.TitleFontSizeMultiplier = 2;
-
 % fs = 2048
 % s = 5
 % eegplot(eeg.trial{1}, 'srate', fs,'position',[0 30 1535 780])
+
+%% Evaluation
+% please provide the n_regions*trial_length matrix "source_signal" as well
+% as the corresponding n*regions*1 "source_label" cell
+% region_pow = rms(config.reconstructed_source,2).^2;
+
+% Compare with actual pseudo-source regions
+bins = [1,.5,0,-1];
+score = zeros(n_sess,n_dip);
+for s = 1:n_sess
+    region_pow = rms(reconstr_source(s).signal,2);
+    high_region = [];
+    while(length(high_region) < n_dip)
+        [~,max_idx] = max(region_pow);
+        region_pow(max_idx) = 0;
+
+        roi_idx = find(ismember(atlas.tissuelabel,reconstr_source(s).label(max_idx)));
+
+        [~,neighbors] = find(neighboring_matrix(roi_idx,:));
+        if ~any(ismember(high_region,neighbors))
+            high_region = [high_region, max_idx];
+        end
+    end
+    
+    true_regions = pseudo_dipole{s}.region;
+    for dip = 1:n_dip
+        neighbors = find(neighboring_matrix(true_regions(dip),:));
+        neighb_neighbors = [];
+        for neighb = neighbors
+            [~,second_neighb] = find(neighboring_matrix(neighb,:));
+            neighb_neighbors = [neighb_neighbors, second_neighb];
+        end
+        if any(ismember(high_region,true_regions(dip)))
+            score(s,dip) = bins(1);
+        elseif any(ismember(high_region,neighbors))
+            score(s,dip) = bins(2);
+        elseif any(ismember(high_region,neighb_neighbors))
+            score(s,dip) = bins(3);
+        else
+            score(s,dip) = bins(4);
+        end
+    end
+end
+% score(1:12) = bins(1);
+% score(13:21) = bins(2);
+% score(22:27) = bins(3);
+% score(28:end) = bins(4);
+
+bins = bins(end:-1:1);
+count = hist(score(:),bins);
+figure;bar(4:-1:1,count)
+xticklabels({"correct","neighbor","2nd neighbor","wrong"})
+ylabel('Number of regions')
+title('reconstructed regions distribution')
+ax = gca;
+ax.TitleFontSizeMultiplier = 1.5;
+
+%boxplot
+figure;boxplot(score(:))
+title(['mean score = ', num2str(mean(score(:)))])
+ax = gca;
+ax.TitleFontSizeMultiplier = 1.5;
+yticks(bins)
+xticklabels('')
+
+% m = nan(length(atlas.tissue),3);
+% m(ismember(atlas.tissue,high_region),:) = repmat([1 0 0],length(m(ismember(atlas.tissue,high_region))),1);
+% ft_plot_mesh(atlas,'facealpha',0.8)
+% hold on
+%%
+close all
+m = zeros(size(atlas.tissue));
+m(ismember(atlas.tissue,high_region)) = 2; %reconstructed region
+m(ismember(atlas.tissue,atlas.tissue(dipole_idx))) = 1; %true region
+m(ismember(atlas.tissue,63)) = 3; %overlapped region
+figure;ft_plot_mesh(atlas,'vertexcolor',m,'facealpha',0.8);
+view([90 90]); h = light; set(h, 'position', [0 0 0.2]); lighting gouraud; material dull
+hold on
+true_pos = mat2cell(atlas.pos(dipole_idx,:),3,[1,1,1]);
+scatter3(true_pos{:},500,'r','filled')
+colormap('jet')
+% title('reconstructed vs. pseudo sources')
+% ax = gca;
+% ax.TitleFontSizeMultiplier = 1.5;

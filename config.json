@@ -1,4 +1,6 @@
 {
+	"benchmark" 			: true,
+	"evaluation" 			: false,
 	"PATH_TO_FIELDTRIP" 	: "D:/FieldTrip",
 	"PATH_TO_SEREEGA" 		: "D:/SEREEGA",	
 	"n_sessions"			: 10,
@@ -10,6 +12,8 @@
 	"comment_session_dur"	: "in minutes",
 	"pseudo_length"			: 1,
 	"comment_pseudo_length" : "in seconds",
+	"event"					: "",
+
 	"type" 					: "ERP", 
 	"comment_type" 			: "ERP or OSCIL",
 	"ERP" 		 			: {
@@ -29,14 +33,16 @@
 							"modulation": "none",
 							"comment_mod": "none or ampmod"
 							},
-	"artifacts" 			: "template/artf_template.mat",
-	"event"					: "",
+	"atlas"					: "template/atlas.mat",
+	"dipoles_selection" 	: "",
+	"template_dip_select" 	: "template/dipole_idx.mat",
+	"avoid_2nd_neighb" 		: true,
+
+	"headmodel"				: "template/vol.mat",
 	"elec"					: "template/elec.mat",
 	"channels"				: "[1:64]",
-	"headmodel"				: "template/vol.mat",
-	"atlas"					: "template/atlas.mat",
-	"avoid_2nd_neighb" 		: true,
-	"snr_source"			: 20,
-	"snr_eeg"			 	: 5,
-	"comment_snr"			: "in dB"
+
+	"artifacts" 			: "template/artf_template.mat",
+	"snr_source"			: 10,
+	"snr_eeg"			 	: 20
 }
