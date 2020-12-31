@@ -348,9 +348,9 @@ save('pseudo_data/artifact.mat','pseudo_artf')
 % eegplot(eeg.trial{1}, 'srate', fs,'position',[0 30 1535 780])
 
 %% Evaluation
-% please provide the n_regions*trial_length matrix "source_signal" as well
-% as the corresponding n*regions*1 "source_label" cell
-% region_pow = rms(config.reconstructed_source,2).^2;
+% The reconstructed sources must be given as a n_sessions structure which 
+% fields are "signal" (as n_regions*trial_length matrix) and "label" 
+% (n*regions*1 cell)
 
 % Compare with actual pseudo-source regions
 bins = [1,.5,0,-1];
