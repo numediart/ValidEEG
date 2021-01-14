@@ -8,8 +8,8 @@ Parameter | Pattern | Definition
 --- | --- | --- 
 benchmark | true/false | run benchmark (template parameters) 
 evaluation | true/false | run the evaluation (set to true when reconstructed sources are computed) 
-PATH_TO_FIELDTRIP | TO DO | Path to FieldTrip toolbox 
-PATH_TO_SEREEGA | TO DO | Path to SEREEGA toolbox 
+PATH_TO_FIELDTRIP | path name | Path to FieldTrip toolbox 
+PATH_TO_SEREEGA | path name | Path to SEREEGA toolbox 
 n_sessions | TO DO | TO DO
 n_dipoles | TO DO | TO DO
 n_trials | TO DO | TO DO
