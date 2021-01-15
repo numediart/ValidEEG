@@ -10,15 +10,15 @@ benchmark | true/false | run benchmark (template parameters)
 evaluation | true/false | run the evaluation (set to true when reconstructed sources are computed) 
 PATH_TO_FIELDTRIP | path name | Path to FieldTrip toolbox 
 PATH_TO_SEREEGA | path name | Path to SEREEGA toolbox 
-n_sessions | TO DO | TO DO
-n_dipoles | TO DO | TO DO
-n_trials | TO DO | TO DO
-n_artifacts | TO DO | TO DO
-fsample | TO DO | TO DO
-session_duration | TO DO | TO DO
-pseudo_length | TO DO | TO DO
-event | TO DO | TO DO
-type | TO DO | TO DO
+n_sessions | int | number of sessions over which to generate pseudo-data (different dipoles for each session)
+n_dipoles | int | number of dipoles defined as source (recommended between 2 and 5)
+n_trials | int | number of occurences of source activation within one session
+n_artifacts | int | number of artifactual segments occuring within one session
+fsample | int | sampling frequency of generated EEG
+session_duration | float | duration in minutes of each session
+pseudo_length | float | duration in seconds of each trial (source activation)
+event | n_sessions x n_trials matrix | matrix defining the starting time of each trial
+type | ERP/OSCIL | definition of source signal type (event-related or oscillatory)
 ERP.peaks | TO DO | TO DO
 ERP.ampli | TO DO | TO DO
 ERP.width | TO DO | TO DO
