@@ -4,7 +4,7 @@
  ## Requirements
  * MATLAB 2016+
  * [FieldTrip Toolbox](https://www.fieldtriptoolbox.org/download.php)
- * [SEREEGAA Toolbox](https://github.com/lrkrol/SEREEGA)
+ * [SEREEGA Toolbox](https://github.com/lrkrol/SEREEGA)
  
  ## Benchmark (plug and play)
  1. Clone this github repository : `git clone https://github.com/LucaLaFisca/Validation-Framework-Source-Reconstruction.git` in command prompt
