@@ -1,9 +1,23 @@
 # Validation Framework Source Reconstruction
  This repository contains all the codes and data relative to "La Fisca et al.,  A Versatile Validation Framework for ERP and Oscillatory Source Reconstruction Using FieldTrip, 2021"
+ 
+ ## Requirements
+ MATLAB 2016+
+ [FieldTrip Toolbox](https://www.fieldtriptoolbox.org/download.php)
+ [SEEREGAA Toolbox](https://github.com/lrkrol/SEREEGA)
+ 
+ ## Benchmark (plug and play)
+ 1. Clone this github repository : git clone https://github.com/LucaLaFisca/Validation-Framework-Source-Reconstruction.git
+ 2. Download template data [link to define]
+ 3. Set `benchmark` parameter in config.json to `true`
+ 4. Run the main scipt **validation_framework.m**
+ 5. Run your own source reconstruction pipeline on the newly generated pseudo-EEG stored in pseudo_eeg folder (one mat file by session). Please, use the template atlas to compute the final region-by-region signal.
+ 6. Save the n_sessions x 1 structure with fields `signal`and `label` corresponding to the reconstructed sources and set the corresponding path in config.json as `reconstr_source` parameter (ensure label order is the same than atlas labels)
+ 7. Set `evaluation` parameter to `true` and run again the main script. The benchmark score appears in the second figure. 
 
 Configuration description and template availability: TO BE DONE.
 
-Description of configuration parameters:
+## Description of configuration parameters
 Parameter | Pattern | Definition
 --- | --- | --- 
 benchmark | true/false | run benchmark (template parameters) 
