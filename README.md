@@ -19,10 +19,10 @@ session_duration | float | duration in minutes of each session
 pseudo_length | float | duration in seconds of each trial (source activation)
 event | n_sessions x n_trials matrix | matrix defining the starting time of each trial
 type | ERP/OSCIL | definition of source signal type (event-related or oscillatory)
-ERP.peaks | TO DO | TO DO
-ERP.ampli | TO DO | TO DO
-ERP.width | TO DO | TO DO
-OSCIL.freq | TO DO | TO DO 
+ERP.peaks | Pxxx/Nxxx series | definition of ERP peaks as series of positive/negative peaks (e.g. P100,N200,P300)
+ERP.ampli | float series | maximum amplitude of each peak
+ERP.width | int | width of each peak corresponding to 6 standard deviation
+OSCIL.freq | "f1": [min_f, max_f], "f2": [min_f2,max_f2],... | definition of the frequency band of each desired oscillation
 OSCIL.max_freq | TO DO | TO DO 
 OSCIL.ampli | TO DO | TO DO 
 OSCIL.modulation | TO DO | TO DO 
