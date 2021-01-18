@@ -9,13 +9,19 @@
  ## Benchmark (plug and play)
  1. Clone this github repository : `git clone https://github.com/LucaLaFisca/Validation-Framework-Source-Reconstruction.git` in command prompt
  2. Download template data **[link to define]** inside `template` subfolder
- 3. Set `benchmark` parameter in config.json to `true`
+ 3. Set `benchmark` parameter in config.json to `true` and `type` to `ERP` or `OSCIL` depending on the signal type you want to analyze
  4. Run the main scipt **validation_framework.m**
  5. Run your own source reconstruction pipeline on the newly generated pseudo-EEG stored in pseudo_eeg folder (one mat file by session). Please, use the template atlas to compute the final region-by-region signal.
  6. Save the n_sessions x 1 structure with fields `signal`and `label` corresponding to the reconstructed sources and set the corresponding path in config.json as `reconstr_source` parameter (ensure label order is the same than atlas labels)
  7. Set `evaluation` parameter to `true` and run again the main script. The benchmark score appears in the second figure. 
 
-Configuration description and template availability: TO BE DONE.
+## Custom analysis
+1. Clone this github repository : `git clone https://github.com/LucaLaFisca/Validation-Framework-Source-Reconstruction.git` in command prompt
+2. Set the configuration parameters with respect to their definition (see below) and **set `benchmark` and `evaluation` parameters to `false`**
+3. Run the main scipt **validation_framework.m**
+4. Run your own source reconstruction pipeline on the newly generated pseudo-EEG stored in pseudo_eeg folder (one mat file by session). Please, use the atlas defined in the config to compute the final region-by-region signal.
+5. Save the n_sessions x 1 structure with fields `signal`and `label` corresponding to the reconstructed sources and set the corresponding path in config.json as `reconstr_source` parameter (ensure label order is the same than atlas labels)
+6. Set `evaluation` parameter to `true` and run again the main script. The final score appears in the second figure. 
 
 ## Description of configuration parameters
 Parameter | Pattern | Definition
