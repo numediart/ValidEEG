@@ -2,9 +2,9 @@
  This repository contains all the codes and data relative to "La Fisca et al.,  A Versatile Validation Framework for ERP and Oscillatory Source Reconstruction Using FieldTrip, 2021"
  
  ## Requirements
- MATLAB 2016+
- [FieldTrip Toolbox](https://www.fieldtriptoolbox.org/download.php)
- [SEEREGAA Toolbox](https://github.com/lrkrol/SEREEGA)
+ * MATLAB 2016+
+ * [FieldTrip Toolbox](https://www.fieldtriptoolbox.org/download.php)
+ * [SEEREGAA Toolbox](https://github.com/lrkrol/SEREEGA)
  
  ## Benchmark (plug and play)
  1. Clone this github repository : git clone https://github.com/LucaLaFisca/Validation-Framework-Source-Reconstruction.git
