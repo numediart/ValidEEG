@@ -25,16 +25,14 @@ ERP.width | int | width of each peak corresponding to 6 standard deviation
 OSCIL.freq | "f1": [min_f, max_f], "f2": [min_f2,max_f2],... | definition of the frequency band of each desired oscillation
 OSCIL.max_freq | int | maximum default frequency if OSCIL.freq is not defined 
 OSCIL.ampli | float series | maximum amplitude of each oscillation
-OSCIL.modulation | none / ampmod | enable or not amplitude modulation of the predefined osciillations 
-atlas | TO DO | TO DO 
-dipoles_selection | TO DO | TO DO 
-dipole_idx | TO DO | TO DO 
-avoid_2nd_neighb | TO DO | TO DO 
-headmodel | TO DO | TO DO 
-elec | TO DO | TO DO 
-channels | TO DO | TO DO 
-benchmark_artf | TO DO | TO DO 
-reconstr_source | TO DO | TO DO 
-artifacts | TO DO | TO DO 
-snr_source | TO DO | TO DO 
-snr_eeg | TO DO | TO DO 
+OSCIL.modulation | none/ampmod | enable or not amplitude modulation of the predefined osciillations 
+atlas | mesh structure (FieldTrip) | FieldTrip atlas structure defining targeted brain regions (cf. ft_read_atlas)
+dipoles_selection | n_sessions x n_dipoles matrix | matrix defining the index of the selected dipoles (relatively to the atlas structure) 
+avoid_2nd_neighb | true/false | avoid or not the selected dipoles to be second neighbors (i.e., neighbor of neighbor) of each other
+headmodel | headmodel structure (FieldTrip) | head model FieldTrip structure corresponding to the volume conduction model (cf. ft_prepare_headmodel)
+elec | elec structure (FieldTrip) | electrode FieldTrip structure describing the EEG sensors (cf. ft_datatype_sens)
+channels | 1 x n_channels vector | vector defining which channels to work with (relatively to the elec structure)
+reconstr_source | n_sessions x 1 structure | signal and label of the reconstructed sources from the generated pseudo-EEG (cf. template/reconstr_source.mat)
+artifacts | struct(artf,time,fsample,label) | structure containing the artifactual segments (artf field) with specific longest time vector (1 x n_sample), sampling frequency (fsample field) and channel labels (n_channel x 1 cell) (cf.template/artf_template.mat)
+snr_source | int | signal-to-noise ratio of generated source signal 
+snr_eeg | int | signal-to-noise ratio of generated EEG signal 
