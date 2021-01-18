@@ -7,7 +7,7 @@
  * [SEREEGAA Toolbox](https://github.com/lrkrol/SEREEGA)
  
  ## Benchmark (plug and play)
- 1. Clone this github repository : git clone https://github.com/LucaLaFisca/Validation-Framework-Source-Reconstruction.git
+ 1. Clone this github repository : `git clone https://github.com/LucaLaFisca/Validation-Framework-Source-Reconstruction.git` in command prompt
  2. Download template data [link to define]
  3. Set `benchmark` parameter in config.json to `true`
  4. Run the main scipt **validation_framework.m**
