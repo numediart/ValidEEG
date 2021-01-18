@@ -8,7 +8,7 @@
  
  ## Benchmark (plug and play)
  1. Clone this github repository : `git clone https://github.com/LucaLaFisca/Validation-Framework-Source-Reconstruction.git` in command prompt
- 2. Download template data [link to define]
+ 2. Download template data [link to define] inside `template` subfolder
  3. Set `benchmark` parameter in config.json to `true`
  4. Run the main scipt **validation_framework.m**
  5. Run your own source reconstruction pipeline on the newly generated pseudo-EEG stored in pseudo_eeg folder (one mat file by session). Please, use the template atlas to compute the final region-by-region signal.
