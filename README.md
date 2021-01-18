@@ -23,9 +23,9 @@ ERP.peaks | Pxxx/Nxxx series | definition of ERP peaks as series of positive/neg
 ERP.ampli | float series | maximum amplitude of each peak
 ERP.width | int | width of each peak corresponding to 6 standard deviation
 OSCIL.freq | "f1": [min_f, max_f], "f2": [min_f2,max_f2],... | definition of the frequency band of each desired oscillation
-OSCIL.max_freq | TO DO | TO DO 
-OSCIL.ampli | TO DO | TO DO 
-OSCIL.modulation | TO DO | TO DO 
+OSCIL.max_freq | int | maximum default frequency if OSCIL.freq is not defined 
+OSCIL.ampli | float series | maximum amplitude of each oscillation
+OSCIL.modulation | none / ampmod | enable or not amplitude modulation of the predefined osciillations 
 atlas | TO DO | TO DO 
 dipoles_selection | TO DO | TO DO 
 dipole_idx | TO DO | TO DO 
