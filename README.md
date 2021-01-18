@@ -13,7 +13,7 @@
  4. Run the main script **validation_framework.m** (it is a very long process... Don't worry)
  5. Run your own source reconstruction pipeline on the newly generated pseudo-EEG stored in pseudo_eeg folder (one mat file by session). Please, use the template atlas to compute the final region-by-region signal.
  6. Save the n_sessions x 1 structure with fields `signal`and `label` corresponding to the reconstructed sources and set the corresponding path in config.json as `reconstr_source` parameter (ensure label order is the same than atlas labels)
- 7. Set `evaluation` parameter to `true` and run again the main script. The benchmark score appears in the second figure. 
+ 7. Set `evaluation` parameter to `true`, `benchmark` to `false` and run again the main script. The benchmark score appears in the second figure. 
 
 ## Custom analysis
 1. Clone this github repository : `git clone https://github.com/LucaLaFisca/Validation-Framework-Source-Reconstruction.git` in command prompt
