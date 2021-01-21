@@ -1,9 +1,9 @@
 {
 	"benchmark" 			: true,
-	"evaluation" 			: true,
+	"evaluation" 			: false,
 	"PATH_TO_FIELDTRIP" 	: "D:/FieldTrip",
 	"PATH_TO_SEREEGA" 		: "D:/SEREEGA",	
-	"n_sessions"			: 10,
+	"n_sessions"			: 1,
 	"n_dipoles" 			: 3,
 	"n_trials" 				: 200,
 	"n_artifacts"			: 200,
@@ -12,7 +12,7 @@
 	"comment_session_dur"	: "in minutes",
 	"pseudo_length"			: 1,
 	"comment_pseudo_length" : "in seconds",
-	"event"					: "",
+	"event"					: "template/event.mat",
 
 	"type" 					: "ERP", 
 	"comment_type" 			: "ERP or OSCIL",
@@ -34,7 +34,7 @@
 							"comment_mod": "none or ampmod"
 							},
 	"atlas"					: "template/atlas.mat",
-	"dipoles_selection" 	: "",
+	"dipoles_selection" 	: "template/dipole_idx.mat",
 	"avoid_2nd_neighb" 		: true,
 
 	"headmodel"				: "template/vol.mat",
