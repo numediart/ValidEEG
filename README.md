@@ -8,7 +8,7 @@
  
  ## Benchmark (plug and play)
  1. Clone this github repository : `git clone https://github.com/LucaLaFisca/Validation-Framework-Source-Reconstruction.git` in command prompt
- 2. Download template data **[link to define]** inside `template` subfolder
+ 2. Download template data from [Zenodo](https://zenodo.org/record/4449634#.YAma5-hKhPY) to `template` subfolder
  3. Set `benchmark` parameter in config.json to `true` and `type` to `ERP` or `OSCIL` depending on the signal type you want to analyze
  4. Run the main script **validation_framework.m** (it is a very long process... Don't worry)
  5. Run your own source reconstruction pipeline on the newly generated pseudo-EEG stored in pseudo_eeg folder (one mat file by session). Please, use the template atlas to compute the final region-by-region signal.
