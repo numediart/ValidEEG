@@ -53,27 +53,6 @@ epochs.length = config.pseudo_length * 1000; % their length in ms
 atlas = load(config.atlas);
 atlas = atlas.(cell2mat(fieldnames(atlas)));
 neighboring_matrix = source_neighbmat(atlas,0);
-% neighborhood correction following regions properties
-for i = 1:length(neighboring_matrix)
-    % forbid left/right neighbours
-    if mod(i,2)
-        neighboring_matrix(i,2:2:end)=0;
-    else
-        neighboring_matrix(i,1:2:end)=0;
-    end
-    % ensure left/right symmetry
-    for j = 1:i
-        if neighboring_matrix(i,j)==1
-            if mod(i,2)
-                neighboring_matrix(i+1,j+1)=1;
-                neighboring_matrix(j+1,i+1)=1;
-            else
-                neighboring_matrix(i-1,j-1)=1;
-                neighboring_matrix(j-1,i-1)=1;
-            end
-        end
-    end
-end
 
 % prepare dipole simulation config
 vol = ft_read_headmodel(config.headmodel);
@@ -355,16 +334,16 @@ switch(evaluation)
             cfg.dip.mom = dipole_mom;
             cfg.dip.signal = pseudo_source(s);
             cfg.fsample = fs;
-            cfg.relnoise = config.snr_eeg;
+            cfg.relnoise = 1/config.snr_eeg;
             pseudo_eeg{s} = ft_dipolesimulation(cfg);
             tmp = pseudo_eeg{s}.trial{1};
             pseudo_eeg{s}.trial{1} = tmp./max(abs(tmp(:))); %Normalization
 
-        %     eeg = pseudo_eeg{s};
-        %     test_path = 'C:\Users\luca-\OneDrive - UMONS\_PhD\_Matlab\Validation\test';
-        %     save([test_path '\session_' num2str(s) '.mat'],'eeg')
-        %     
-        %     continue
+%             %(uncomment) test the reconstruction without artifact
+%             eeg = pseudo_eeg{s};
+%             test_path = '..\test';
+%             save([test_path '\session_' num2str(s) '.mat'],'eeg')
+%             continue
 
             if ~config.benchmark
                 % add artifacts randomly selected from the templates
@@ -412,7 +391,7 @@ switch(evaluation)
         % Compare with actual pseudo-source regions
         bins = [1,.5,0,-1];
         score = zeros(n_sess,n_dip);
-        for s = 2:n_sess
+        for s = 1:n_sess
             region_pow = rms(reconstr_source(s).signal,2);
             high_region = [];
             while(length(high_region) < n_dip)
@@ -423,7 +402,7 @@ switch(evaluation)
 
                 [~,neighbors] = find(neighboring_matrix(roi_idx,:));
                 if ~any(ismember(high_region,neighbors))
-                    high_region = [high_region, max_idx];
+                    high_region = [high_region, roi_idx];
                 end
             end
 
@@ -466,7 +445,7 @@ switch(evaluation)
 
 
 %         % (uncomment) show ROIs on the cortex
-%         s = 1; %set the desired session
+%         s = 3; %set the desired session
 %         m = zeros(size(atlas.tissue));
 %         m(ismember(atlas.tissue,high_region)) = 2; %reconstructed region
 %         m(ismember(atlas.tissue,atlas.tissue(dipole_idx(s,:)))) = 1; %true region
