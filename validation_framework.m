@@ -179,6 +179,7 @@ switch(evaluation)
         for s = 1:n_sess
             if ~config.benchmark && isempty(config.dipoles_selection)
                 % random dipole position
+                rng('default');
                 rng('shuffle');
                 neighb_cond = 0;
                 non_zero_dip = find(atlas.tissue ~= 0);
@@ -355,13 +356,14 @@ switch(evaluation)
                 pseudo_artf{s} = cell2struct(pseudo_artf{s},{'sample' 'index' 'type'},2);
                 pseudo_artf{s} = struct2table(pseudo_artf{s});
             else
-                rand_artf = pseudo_artf{s}.rand_artf;
+                rand_artf = pseudo_artf{s}.index;
+                rand_time = pseudo_artf{s}.sample;
             end
 
             tmp = pseudo_eeg{s}.trial{1};
             for i = 1:n_artf
                 tmp(:,rand_time(i):rand_time(i)+size(all_artf{rand_artf(i)},2)-1) = ...
-                    tmp(:,rand_time(i):rand_time(i)+size(all_artf{rand_artf(i)},2)-1) + all_artf{rand_artf(i)}./4;
+                    tmp(:,rand_time(i):rand_time(i)+size(all_artf{rand_artf(i)},2)-1) + all_artf{rand_artf(i)}./config.snr_eeg;
             end
 
             pseudo_eeg{s}.trial{1} = tmp;
@@ -377,8 +379,8 @@ switch(evaluation)
             save('pseudo_data/artifact.mat','pseudo_artf')
 
         end
-        % eegplot(pseudo_source{s}, 'srate', fs,'position',[0 30 1535 780])
-        % eegplot(pseudo_eeg{s}.trial{1}, 'srate', fs,'position',[0 30 1535 780])
+        eegplot(pseudo_source{s}, 'srate', fs,'position',[0 30 1535 780])
+        eegplot(pseudo_eeg{s}.trial{1}, 'srate', fs,'position',[0 30 1535 780])
         % eegplot(tmp, 'srate', fs,'position',[0 30 1535 780])
         % pseudo_eeg{s}.time{1}(pseudo_artf{s}.sample)
 
@@ -401,8 +403,15 @@ switch(evaluation)
                 roi_idx = find(ismember(atlas.tissuelabel,reconstr_source(s).label(max_idx)));
 
                 [~,neighbors] = find(neighboring_matrix(roi_idx,:));
-                if ~any(ismember(high_region,neighbors))
-                    high_region = [high_region, roi_idx];
+                neighb_neighbors = [];
+                for neighb = neighbors
+                    [~,second_neighb] = find(neighboring_matrix(neighb,:));
+                    neighb_neighbors = [neighb_neighbors, second_neighb];
+                end
+                if ~any(ismember(high_region,neighbors)) %avoid the selection of neighboring regions
+                    if ~any(ismember(high_region,neighb_neighbors)) %avoid second neighbors
+                        high_region = [high_region, roi_idx];
+                    end
                 end
             end
 
@@ -445,12 +454,12 @@ switch(evaluation)
 
 
 %         % (uncomment) show ROIs on the cortex
-%         s = 3; %set the desired session
+%         %s = 3; %set the desired session
 %         m = zeros(size(atlas.tissue));
 %         m(ismember(atlas.tissue,high_region)) = 2; %reconstructed region
-%         m(ismember(atlas.tissue,atlas.tissue(dipole_idx(s,:)))) = 1; %true region
-%         % m(ismember(atlas.tissue,63)) = 3; %overlapped region
-%         figure;ft_plot_mesh(atlas,'vertexcolor',m,'facealpha',0.8);
+%         m(ismember(atlas.tissue,true_regions)) = 1; %true region
+%         m(ismember(atlas.tissue,high_region(ismember(high_region,true_regions)))) = 3; %overlapped region
+%         figure;ft_plot_mesh(atlas,'vertexcolor',m,'facealpha',0.6);
 %         view([90 90]); h = light; set(h, 'position', [0 0 0.2]); lighting gouraud; material dull
 %         hold on
 %         true_pos = mat2cell(atlas.pos(dipole_idx(s,:),:),3,[1,1,1]);
