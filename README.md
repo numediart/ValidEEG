@@ -2,7 +2,7 @@
  This repository contains all the codes and data relative to "La Fisca et al.,  A Versatile Validation Framework for ERP and Oscillatory Source Reconstruction Using FieldTrip, 2021"
  
 ## Tutorial
-[Framework tutorial](my_link, GIF)
+[Framework tutorial](https://github.com/numediart/ValidEEG/blob/main/test_session.gif, GIF)
  
  ## Requirements
  * MATLAB 2016+
