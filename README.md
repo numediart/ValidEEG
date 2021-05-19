@@ -1,6 +1,9 @@
 # Validation Framework Source Reconstruction
  This repository contains all the codes and data relative to "La Fisca et al.,  A Versatile Validation Framework for ERP and Oscillatory Source Reconstruction Using FieldTrip, 2021"
  
+## Tutorial
+[Framework tutorial](my_link, GIF)
+ 
  ## Requirements
  * MATLAB 2016+
  * [FieldTrip Toolbox](https://www.fieldtriptoolbox.org/download.php)
