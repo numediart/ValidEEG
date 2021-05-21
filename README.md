@@ -1,6 +1,9 @@
 # Validation Framework For Source Localization
  This repository contains all the codes and data relative to "La Fisca et al.,  A Versatile Validation Framework for ERP and Oscillatory Brain Source Localization Using FieldTrip, 2021"
  
+ ## Tutorial
+ [This video](https://youtu.be/4r1qFZoCp7A) is a step-by-step tutorial.
+ 
  ## Requirements
  * MATLAB 2016+
  * [FieldTrip Toolbox](https://www.fieldtriptoolbox.org/download.php)
