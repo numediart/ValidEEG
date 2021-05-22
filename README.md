@@ -4,7 +4,6 @@
  ## Tutorial
  [![Tutorial](https://github.com/numediart/ValidEEG/blob/main/tutorial.jpg?raw=true)](https://youtu.be/4r1qFZoCp7A)
 
- [This video](https://youtu.be/4r1qFZoCp7A) is a step-by-step tutorial.
  
  ## Requirements
  * MATLAB 2016+
