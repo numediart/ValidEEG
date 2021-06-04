@@ -1,5 +1,9 @@
 function [atlas] = prepare_atlas(atlas_path,rois,roi_mat)
 %% convert nifti atlas into FieldTrip sourcemodel structure
+% rois is defined as one vector defining the regions of interest 
+% e.g., rois = [1:90];
+% roi_mat allows one to merge specific regions through a cell corresponding
+% to the requirement of select_roi function
 
 if nargin < 2
     error('Missing argument')

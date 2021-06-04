@@ -1,4 +1,4 @@
-%% Fashionable validation framework for ERP and oscillatory source reconstruction using Fieldtrip
+%% A versatile validation framework for ERP and oscillatory source localization using Fieldtrip
 
 %% set paths and load config
 mfilename = 'validation_framework.m';
@@ -16,6 +16,7 @@ config = jsondecode(str);
 
 addpath(config.PATH_TO_FIELDTRIP)
 addpath(genpath(config.PATH_TO_SEREEGA))
+addpath('utils')
 ft_defaults
 cd(root)
 
@@ -363,20 +364,28 @@ switch(evaluation)
             tmp = pseudo_eeg{s}.trial{1};
             for i = 1:n_artf
                 tmp(:,rand_time(i):rand_time(i)+size(all_artf{rand_artf(i)},2)-1) = ...
-                    tmp(:,rand_time(i):rand_time(i)+size(all_artf{rand_artf(i)},2)-1) + all_artf{rand_artf(i)}./config.snr_eeg;
+                    tmp(:,rand_time(i):rand_time(i)+size(all_artf{rand_artf(i)},2)-1) + all_artf{rand_artf(i)};%./config.snr_eeg;
             end
 
             pseudo_eeg{s}.trial{1} = tmp;
 
             % save pseudo-eeg of each session (to avoid out of memory)
             eeg = pseudo_eeg{s};
-            save(['pseudo_eeg/session_' num2str(s) '.mat'],'eeg')
+%             save(['pseudo_eeg/session_' num2str(s) '.mat'],'eeg')
+% 
+%             % save pseudo_data
+%             save('pseudo_data/dipole_idx.mat','dipole_idx')
+%             save('pseudo_data/dipole.mat','pseudo_dipole')
+%             save('pseudo_data/source.mat','pseudo_source')
+%             save('pseudo_data/artifact.mat','pseudo_artf')
+            
+            save(['pseudo_eeg/session_' num2str(n_artf) '.mat'],'eeg')
 
             % save pseudo_data
-            save('pseudo_data/dipole_idx.mat','dipole_idx')
-            save('pseudo_data/dipole.mat','pseudo_dipole')
-            save('pseudo_data/source.mat','pseudo_source')
-            save('pseudo_data/artifact.mat','pseudo_artf')
+            save(['pseudo_data/dipole_idx_' num2str(n_artf) '.mat'],'dipole_idx')
+            save(['pseudo_data/dipole_' num2str(n_artf) '.mat'],'pseudo_dipole')
+            save(['pseudo_data/artifact_' num2str(n_artf) '.mat'],'pseudo_artf')
+            
 
         end
         eegplot(pseudo_source{s}, 'srate', fs,'position',[0 30 1535 780])
@@ -395,6 +404,7 @@ switch(evaluation)
         score = zeros(n_sess,n_dip);
         for s = 1:n_sess
             region_pow = rms(reconstr_source(s).signal,2);
+%             region_pow = rms(reconstr_dics(s).signal,2);
             high_region = [];
             while(length(high_region) < n_dip)
                 [~,max_idx] = max(region_pow);
@@ -433,6 +443,20 @@ switch(evaluation)
                     score(s,dip) = bins(4);
                 end
             end
+            % (uncomment) show ROIs on the cortex
+            m = zeros(size(atlas.tissue));
+            m(ismember(atlas.tissue,high_region)) = 2; %reconstructed region
+            m(ismember(atlas.tissue,true_regions)) = 1; %true region
+            m(ismember(atlas.tissue,high_region(ismember(high_region,true_regions)))) = 3; %overlapped region
+            figure;ft_plot_mesh(atlas,'vertexcolor',m,'facealpha',0.4);
+            view([90 90]); h = light; set(h, 'position', [0 0 0.2]); lighting gouraud; material dull
+            hold on
+            true_pos = mat2cell(atlas.pos(dipole_idx(s,:),:),3,[1,1,1]);
+            scatter3(true_pos{:},500,'r','filled')
+            colormap('jet')
+            title('reconstructed sources vs. ground truth')
+            ax = gca;
+            ax.TitleFontSizeMultiplier = 1.5;
         end
 
         bins = bins(end:-1:1);
@@ -452,20 +476,4 @@ switch(evaluation)
         yticks(bins)
         xticklabels('')
 
-
-%         % (uncomment) show ROIs on the cortex
-%         %s = 3; %set the desired session
-%         m = zeros(size(atlas.tissue));
-%         m(ismember(atlas.tissue,high_region)) = 2; %reconstructed region
-%         m(ismember(atlas.tissue,true_regions)) = 1; %true region
-%         m(ismember(atlas.tissue,high_region(ismember(high_region,true_regions)))) = 3; %overlapped region
-%         figure;ft_plot_mesh(atlas,'vertexcolor',m,'facealpha',0.6);
-%         view([90 90]); h = light; set(h, 'position', [0 0 0.2]); lighting gouraud; material dull
-%         hold on
-%         true_pos = mat2cell(atlas.pos(dipole_idx(s,:),:),3,[1,1,1]);
-%         scatter3(true_pos{:},500,'r','filled')
-%         colormap('jet')
-%         title('reconstructed sources vs. ground truth')
-%         ax = gca;
-%         ax.TitleFontSizeMultiplier = 1.5;
 end
