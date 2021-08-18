@@ -1,5 +1,29 @@
 %% A versatile validation framework for ERP and oscillatory source localization using Fieldtrip
 
+% Validation of source localization algorithms through pseudo-EEG dataset
+% and neighbor-based metrics.
+% 
+% REQUIREMENTS:
+% config.json file defining required parameters.
+%
+% OUTPUT:
+% if config.evaluation==false: pseudo_data (source infos) & pseudo_eeg (generated
+% pseudo-EEG dataset) folders
+% elseif config.evaluation==true: reconstruction precision score 
+% (+ boxplot) & related brain regions on cortex representation
+%
+% REFERENCE:
+% Luca La Fisca and Bernard Gosselin. 2021. A Versatile Validation
+% Framework for ERP and Oscillatory Brain Source Localization Using 
+% FieldTrip. In 4th International Conference on Biometric Engineering and
+% Applications (ICBEA 21), May 25–27, 2021, Taiyuan, China. ACM, New York,
+% NY, USA, 6 pages.
+% https://doi.org/10.1145/3476779.3476781
+%
+% Luca La Fisca
+% ------------------------------
+%  Copyright UMONS (C) 2021
+
 %% set paths and load config
 mfilename = 'validation_framework.m';
 root = fileparts(which(mfilename));
