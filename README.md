@@ -1,5 +1,7 @@
 # Validation Framework For Source Localization
- This repository contains all the codes and data relative to "La Fisca et al.,  A Versatile Validation Framework for ERP and Oscillatory Brain Source Localization Using FieldTrip, 2021"
+ This repository contains all the codes and data relative to the following paper:
+ 
+[La Fisca et al.,  A Versatile Validation Framework for ERP and Oscillatory Brain Source Localization Using FieldTrip, ICBEA '21: 4th International Conference on Biometric Engineering and Applications, May 2021, Pages 7–12](https://doi.org/10.1145/3476779.3476781)
  
  ## Tutorial
  [![Tutorial](https://github.com/numediart/ValidEEG/blob/main/tutorial.jpg?raw=true)](https://youtu.be/8VjubupsB9Q)
