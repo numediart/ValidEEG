@@ -1,7 +1,32 @@
 %% A versatile validation framework for ERP and oscillatory source localization using Fieldtrip
-
 % Validation of source localization algorithms through pseudo-EEG dataset
 % and neighbor-based metrics.
+
+%{
+Created by Luca La Fisca
+ISIA Lab, Faculty of Engineering University of Mons, Mons (Belgium)
+luca.lafisca@umons.ac.be
+Source: Luca La Fisca and Bernard Gosselin. 2021. A Versatile Validation
+Framework for ERP and Oscillatory Brain Source Localization Using 
+FieldTrip. In 4th International Conference on Biometric Engineering and
+Applications (ICBEA 21), May 25–27, 2021, Taiyuan, China. ACM, New York,
+NY, USA, 6 pages. https://doi.org/10.1145/3476779.3476781
+Copyright (C) 2021 - UMons
+This library is free software; you can redistribute it and/or
+modify it under the terms of the GNU Lesser General Public
+License as published by the Free Software Foundation; either
+version 2.1 of the License, or (at your option) any later version.
+This library is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+Lesser General Public License for more details.
+You should have received a copy of the GNU Lesser General Public
+License along with this library; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+This library cannot be used for commercial use without the agreement of the
+author (Luca La Fisca).
+%}
+
 % 
 % REQUIREMENTS:
 % config.json file defining required parameters.
@@ -11,18 +36,6 @@
 % pseudo-EEG dataset) folders
 % elseif config.evaluation==true: reconstruction precision score 
 % (+ boxplot) & related brain regions on cortex representation
-%
-% REFERENCE:
-% Luca La Fisca and Bernard Gosselin. 2021. A Versatile Validation
-% Framework for ERP and Oscillatory Brain Source Localization Using 
-% FieldTrip. In 4th International Conference on Biometric Engineering and
-% Applications (ICBEA 21), May 25–27, 2021, Taiyuan, China. ACM, New York,
-% NY, USA, 6 pages.
-% https://doi.org/10.1145/3476779.3476781
-%
-% Luca La Fisca
-% ------------------------------
-%  Copyright UMONS (C) 2021
 
 %% set paths and load config
 mfilename = 'validation_framework.m';
